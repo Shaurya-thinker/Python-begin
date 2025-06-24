@@ -28,7 +28,7 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-new_person = Person(name='Charlie', age=30)
+""" new_person = Person(name='Charlie', age=30)
 session.add(new_person)
 session.flush()
 
@@ -39,4 +39,8 @@ session.commit()
 
 
 print([t.description for t in new_person.things])
-print(new_thing.person.name)
+print(new_thing.person.name) """
+
+
+results = session.query(Person).filter(Person.age > 30).all()
+print([p.name for p in results])
