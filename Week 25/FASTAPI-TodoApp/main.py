@@ -1,13 +1,12 @@
 from fastapi import FastAPI
-from models import todo
 from database import engine
-from routers import todo as todo_router
+from models import todo, user
+from routers import todo as todo_router, auth as auth_router
 
-# Create DB tables
 todo.Base.metadata.create_all(bind=engine)
+user.Base.metadata.create_all(bind=engine)
 
-# Initialize app
 app = FastAPI()
 
-# Include route module
 app.include_router(todo_router.router)
+app.include_router(auth_router.router)
