@@ -1,12 +1,15 @@
 from fastapi import FastAPI
-from database import engine
-from models import todo, user
-from routers import todo as todo_router, auth as auth_router
+from auth.routes import router as auth_router
+from routers.todo import router as todo_router
+from database import engine, Base
 
-todo.Base.metadata.create_all(bind=engine)
-user.Base.metadata.create_all(bind=engine)
+app = FastAPI(debug=True)
 
-app = FastAPI()
 
-app.include_router(todo_router.router)
-app.include_router(auth_router.router)
+@app.on_event("startup")
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+app.include_router(auth_router)
+app.include_router(todo_router)

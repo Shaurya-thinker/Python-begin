@@ -1,39 +1,31 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from models.todo import ToDo
+from schemas.todo import ToDoCreate, ToDoOut
+from database import get_db
+from auth.utils import get_current_user
+from models.user import User
 
-from database import SessionLocal
-from models.todo import ToDo as DBToDo
-from schemas.todo import ToDoCreate, ToDoResponse
+router = APIRouter(prefix="/todos", tags=["ToDos"])
 
-router = APIRouter()
+@router.post("/", response_model=ToDoOut)
+async def create_todo(todo: ToDoCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    new_todo = ToDo(**todo.dict(), user_id=current_user.id)
+    db.add(new_todo)
+    await db.commit()
+    await db.refresh(new_todo)
+    return new_todo
 
-# Dependency to get DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+@router.get("/", response_model=list[ToDoOut])
+async def get_todos(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    result = await db.execute(select(ToDo).where(ToDo.user_id == current_user.id))
+    return result.scalars().all()
 
-# POST /todos
-@router.post("/todos", response_model=ToDoResponse)
-def create_todo(todo: ToDoCreate, db: Session = Depends(get_db)):
-    db_todo = DBToDo(title=todo.title, description=todo.description)
-    db.add(db_todo)
-    db.commit()
-    db.refresh(db_todo)
-    return db_todo
-
-# GET /todos
-@router.get("/todos", response_model=List[ToDoResponse])
-def get_all_todos(db: Session = Depends(get_db)):
-    return db.query(DBToDo).all()
-
-# GET /todos/{id}
-@router.get("/todos/{id}", response_model=ToDoResponse)
-def get_todo_by_id(id: int, db: Session = Depends(get_db)):
-    todo = db.query(DBToDo).filter(DBToDo.id == id).first()
+@router.get("/{id}", response_model=ToDoOut)
+async def get_todo(id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    result = await db.execute(select(ToDo).where(ToDo.id == id, ToDo.user_id == current_user.id))
+    todo = result.scalar_one_or_none()
     if not todo:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="ToDo not found")
     return todo

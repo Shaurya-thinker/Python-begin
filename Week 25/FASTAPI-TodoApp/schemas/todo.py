@@ -1,15 +1,13 @@
 from pydantic import BaseModel
-from typing import Optional
 
 class ToDoCreate(BaseModel):
     title: str
-    description: Optional[str] = None
+    description: str = ""
+    completed: bool = False
 
-class ToDoResponse(BaseModel):
+class ToDoOut(ToDoCreate):
     id: int
-    title: str
-    description: Optional[str]
+    user_id: int
 
     class Config:
         from_attributes = True
-
