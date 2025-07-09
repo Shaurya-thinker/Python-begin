@@ -7,9 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from models.user import User
 from database import get_db
+from utils.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
-SECRET_KEY = "secret"
-ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -25,11 +24,19 @@ def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
+    if not SECRET_KEY or not isinstance(SECRET_KEY, str):
+        raise ValueError("SECRET_KEY must be a non-empty string")
+    if not ALGORITHM or not isinstance(ALGORITHM, str):
+        raise ValueError("ALGORITHM must be a non-empty string")
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
     credentials_exception = HTTPException(status_code=401, detail="Invalid credentials", headers={"WWW-Authenticate": "Bearer"})
     try:
+        if not SECRET_KEY or not isinstance(SECRET_KEY, str):
+            raise HTTPException(status_code=500, detail="Invalid SECRET_KEY configuration")
+        if not isinstance(ALGORITHM, str) or not ALGORITHM:
+            raise HTTPException(status_code=500, detail="Invalid ALGORITHM configuration")
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:

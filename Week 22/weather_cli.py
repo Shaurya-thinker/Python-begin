@@ -11,16 +11,16 @@ def get_weather(city, api_key):
 
     try:
         response = requests.get(base_url, params=params)
-        response.raise_for_status()  # Raise error for bad responses (4xx, 5xx)
+        response.raise_for_status()  
 
         data = response.json()
 
-        # Extract and display weather info
+        
         print(f"\nWeather in {data['name']}, {data['sys']['country']}:")
-        print(f"🌡 Temperature: {data['main']['temp']} °C")
-        print(f"🌥 Description: {data['weather'][0]['description'].title()}")
-        print(f"💧 Humidity: {data['main']['humidity']}%")
-        print(f"🌬 Wind Speed: {data['wind']['speed']} m/s\n")
+        print(f"Temperature: {data['main']['temp']} °C")
+        print(f"Description: {data['weather'][0]['description'].title()}")
+        print(f"Humidity: {data['main']['humidity']}%")
+        print(f"Wind Speed: {data['wind']['speed']} m/s\n")
 
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP error occurred: {http_err}")

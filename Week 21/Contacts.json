@@ -1,14 +1,14 @@
 [
-  {
-    "Shaurya": "akansh"
-  },
-  {
-    "Shaurya": "panshul"
-  },
-  {
-    "Shaurya": "ananya"
-  },
-  {
-    "Shaurya": "harsh"
-  }
+    {
+        "name": "Shaurya Vrat Shukla",
+        "phone": "8604127482",
+        "email": "shauryavratshukla@gmail.com",
+        "address": "NA"
+    },
+    {
+        "name": "Yash Vrat Shukla",
+        "phone": "9918127482",
+        "email": "yashvratshukla@gmail.com",
+        "address": ""
+    }
 ]
